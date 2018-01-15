@@ -1,4 +1,5 @@
 import io
+import os
 from flask import Flask, request, g
 from flask import send_file, render_template
 from PIL import Image
@@ -79,4 +80,6 @@ def predict():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    # Bind to PORT if defined, otherwise default to 5000.
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
