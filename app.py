@@ -6,8 +6,8 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.models import load_model
 from number_of_islands import Graph
-import matplotlib.pyplot as plt
-plt.use('Agg')
+#import matplotlib.pyplot as plt
+#plt.use('Agg')
 
 app = Flask(__name__, instance_relative_config=True)
 
@@ -52,16 +52,16 @@ def predict():
     # Append transparency 4th channel to the 3 RGB image channels.
     print('image array: ', np.array(image).shape)
     print('result array: ', res.shape)
-    plt.figure()
-    plt.imshow(img)
-    plt.imshow(res.reshape(img_rows, img_cols), alpha=0.6)
-
-    byte_io = io.BytesIO()
-
-    plt.savefig(byte_io)
-    byte_io.seek(0)
-    return send_file(byte_io, mimetype='image/png')
-
+    # plt.figure()
+    # plt.imshow(img)
+    # plt.imshow(res.reshape(img_rows, img_cols), alpha=0.6)
+    #
+    # byte_io = io.BytesIO()
+    #
+    # plt.savefig(byte_io)
+    # byte_io.seek(0)
+    # return send_file(byte_io, mimetype='image/png')
+    return "Huts detected: ", g.countIslands()
     # transparent_image = np.append(np.array(image), res.reshape(400, 400)*255., axis=-1)
     # transparent_image = Image.fromarray(transparent_image)
     # transparent_image = transparent_image.convert('RGB')
