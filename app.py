@@ -48,7 +48,7 @@ def predict():
 
     res = model.predict(img.reshape(1, img_rows, img_cols, 1))
     g = Graph(img_rows, img_cols, res.reshape(img_rows, img_cols))
-    g.countIslands()
+
 
     # Append transparency 4th channel to the 3 RGB image channels.
     print('image array: ', np.array(image).shape)
@@ -62,7 +62,9 @@ def predict():
     # plt.savefig(byte_io)
     # byte_io.seek(0)
     # return send_file(byte_io, mimetype='image/png')
-    return "Huts detected: ", g.countIslands()
+    app_result = {'roofs': str(g.countIslands())}
+    print(str(g.countIslands()))
+    return render_template('result.html', roofs=app_result['roofs'])
     # transparent_image = np.append(np.array(image), res.reshape(400, 400)*255., axis=-1)
     # transparent_image = Image.fromarray(transparent_image)
     # transparent_image = transparent_image.convert('RGB')
