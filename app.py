@@ -33,12 +33,13 @@ def home():
 	return render_template('index.html')
 
 
-THRESHOLD = 0.5
-img_rows, img_cols = 400, 400
 
 @app.route('/predict', methods=['POST'])
 def predict():
     # Load image
+    params = request.form
+    img_rows, img_cols = int(params['row pixels']), int(params['column pixels'])
+    print(img_rows, img_cols)
     image = request.files['file']
     image = Image.open(image)
     img = np.array(image).astype('float32')
