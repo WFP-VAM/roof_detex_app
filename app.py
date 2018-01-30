@@ -13,12 +13,6 @@ from number_of_islands import Graph
 app = Flask(__name__, instance_relative_config=True)
 
 
-
-# Preload our model
-print("Loading model")
-model = load_model('UNET_model_400400_bu4.h5', compile=False)
-graph = tf.get_default_graph()
-
 def ml_predict(image):
     with graph.as_default():
         # Add a dimension for the batch
@@ -83,6 +77,13 @@ def predict():
 
 
 if __name__ == '__main__':
-    # Bind to PORT if defined, otherwise default to 5000.
+	
+	# Preload our model
+	print(("* Loading Keras model and Flask starting server..."
+        "please wait until server has fully started"))
+	model = load_model('UNET_model_400400_bu4.h5', compile=False)
+	graph = tf.get_default_graph()
+
+	# Bind to PORT if defined, otherwise default to 5000.
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
