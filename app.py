@@ -41,7 +41,7 @@ def predict():
     # crop only to relevant pixels
     img = img[:img_rows, :img_cols]
 
-    res = model.predict(img.reshape(1, img_rows, img_cols, 1))
+    res = model.predict(img.reshape(1, img_rows, img_cols, 3))
     g = Graph(img_rows, img_cols, res.reshape(img_rows, img_cols))
 
 
