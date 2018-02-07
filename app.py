@@ -81,7 +81,7 @@ if __name__ == '__main__':
 	# Preload our model
 	print(("* Loading Keras model and Flask starting server..."
         "please wait until server has fully started"))
-	model = load_model('UNET_model_400400_bu4.h5', compile=False)
+	model = load_model('model_ft2.h5', compile=False)
 	graph = tf.get_default_graph()
 
 	# Bind to PORT if defined, otherwise default to 5000.
