@@ -2,8 +2,13 @@
 <html>
 <title>Roof detection app</title>
 <body>
-<h3> Roofs detected: {{ roofs }} </h3>
+<!--<h3> Roofs detected: {{ roofs }} </h3> -->
 
+<p>
+{% if result != None %}
+<img src="data:image/png;base64,{{ result }}" width="500">
+{% endif %}
+</p>
 
 </body>
 </html>
