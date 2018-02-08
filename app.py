@@ -7,6 +7,7 @@ import tensorflow as tf
 from tensorflow.python.keras.models import load_model
 from number_of_islands import Graph
 import matplotlib.pyplot as plt
+import matplotlib
 matplotlib.use('Agg')
 import io
 app = Flask(__name__, instance_relative_config=True)
