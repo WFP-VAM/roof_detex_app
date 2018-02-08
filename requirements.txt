@@ -1,6 +1,6 @@
 Flask==0.12.2
 pillow==4.3.0
 tensorflow==1.4.0 
-matplotlib==2.1.1
+matplotlib==1.1.0
 gunicorn
 h5py
