@@ -24,23 +24,19 @@
    
 		<div class="container">
 			<form class="form" action = "/predict" method = "POST" enctype = "multipart/form-data">
-			
+
+			<div> Upload a satellite picture of any size (minimum 256 lixels) and it will calculate how many huts are in it.</div><br>
+
 			 <div class="form-group">
 				<label for="file"> File:</label>
 				<input type = "file" name = "file" />
 				<small id="emailHelp" class="form-text text-muted">We won't save your image.</small>
 			 </div>
 			 
-			 <div class="form-group">
+			 <!-- <div class="form-group">
 				<label for="row pixels">Number of Row Pixels (minimum & best 256):</label><br>
 				<input type="text" name="row pixels" value="256"/>
-			 </div>
-			
-			 <div class="form-group">
-				<label for="column pixels">Number of Column Pixels (minimum & best 256):</label><br>
-				<input type="text" name="column pixels" value="256"/>
-			 </div>
-			 
+			 </div> -->
 			 
 			 <button type="submit" class="btn btn-default">Submit</button>
 			</form>

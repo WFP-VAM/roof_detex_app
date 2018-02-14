@@ -44,11 +44,30 @@ def predict():
 
     img_rows, img_cols = img.shape[0], img.shape[1]
 
-    res = model.predict(img.reshape(1, img_rows, img_cols, 3))
-    g = Graph(img_rows, img_cols, res.reshape(img_rows, img_cols))
+    # crop image, score and create output
+    height, width = 256, 256
+
+    im_list = []  # the crops will go here
+    huts_list = []  # the huts for each image go here
+    composite = np.zeros((img_rows, img_cols)) # the result from each crop will be stored here.
+
+    for i in range(img_rows // height):
+        for j in range(img_cols // width):
+            # print (i,j)
+            box = (j * width, i * height, (j + 1) * width, (i + 1) * height)
+            im_crop = image.crop(box)
+            im_list.append(im_crop)
+
+            im_crop = np.array(im_crop).astype('float32')
+            res = model.predict(im_crop.reshape(1, height, width, 3))
+
+            g = Graph(height, width, res.reshape(height, width))
+            huts_list.append(g.countIslands())
+
+            composite[j * width:(j + 1) * width, i * height:(i + 1) * height] = res.reshape(height, width)
 
     # generate image with result
-    return output_showcase(img, res, img_rows, img_cols, g.countIslands())
+    return output_showcase(img, composite, img_rows, img_cols, sum(huts_list))
 
 
 if __name__ == '__main__':
