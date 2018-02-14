@@ -57,7 +57,7 @@ if __name__ == '__main__':
     print(("* Loading Keras model and Flask starting server..."
             "please wait until server has fully started"))
 
-    model = load_model('model_ft2.h5', compile=False)
+    model = load_model('model.h5', compile=False)
 
     # Bind to PORT if defined, otherwise default to 5000.
     port = int(os.environ.get('PORT', 5000))
