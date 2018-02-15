@@ -34,11 +34,12 @@ def home():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    # Load image
-    params = request.form
+    if request.files['file'].filename == '':
+        return 'No selected file'
 
+    # Load image
     image = request.files['file']
-    image = Image.open(image)
+    image = Image.open(image).convert('RGB')
 
     img = np.array(image).astype('float32')
 
@@ -59,9 +60,9 @@ def predict():
             im_list.append(im_crop)
 
             im_crop = np.array(im_crop).astype('float32')
-            res = model.predict(im_crop.reshape(1, height, width, 3))
+            res = model.predict(im_crop.reshape(1, im_crop.shape[0], im_crop.shape[1], 3))
 
-            g = Graph(height, width, res.reshape(height, width))
+            g = Graph(height, width, res.reshape(im_crop.shape[0], im_crop.shape[1]))
             huts_list.append(g.countIslands())
 
             composite[j * width:(j + 1) * width, i * height:(i + 1) * height] = res.reshape(height, width)
