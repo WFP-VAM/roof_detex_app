@@ -60,12 +60,14 @@ def predict():
             im_list.append(im_crop)
 
             im_crop = np.array(im_crop).astype('float32')
-            res = model.predict(im_crop.reshape(1, im_crop.shape[0], im_crop.shape[1], 3))
+            res = model.predict((im_crop/np.amax(img)).reshape(1, im_crop.shape[0], im_crop.shape[1], 3))
 
             g = Graph(height, width, res.reshape(im_crop.shape[0], im_crop.shape[1]))
-            huts_list.append(g.countIslands())
-
-            composite[j * width:(j + 1) * width, i * height:(i + 1) * height] = res.reshape(height, width)
+            #huts_list.append(g.countIslands())
+            print(res.shape[1], res.shape[2])
+            tg_shape = composite[j * width:(j + 1) * width, i * height:(i + 1) * height].shape
+            print(tg_shape)
+            composite[j * width:(j + 1) * width, i * height:(i + 1) * height] = res[:,:tg_shape[0], :tg_shape[1],:].reshape(tg_shape[0], tg_shape[1])
 
     # generate image with result
     return output_showcase(img, composite, img_rows, img_cols, sum(huts_list))
