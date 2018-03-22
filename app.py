@@ -1,76 +1,76 @@
-import os
 from flask import Flask, request
 from flask import send_file, render_template
-from PIL import Image
+import os
 import numpy as np
 from tensorflow.python.keras.models import load_model
 from number_of_islands import Graph
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import io
+
 app = Flask(__name__, instance_relative_config=True)
-
-
-def output_showcase(img, res, img_rows, img_cols, islands):
-    # generate image with result
-    fig = plt.figure(figsize=(5, 5), dpi=300)
-    ax = fig.add_subplot(111)
-    ax.imshow(img.astype('uint8'))
-    ax.imshow(res.reshape(img_rows, img_cols) * 100, alpha=0.3, cmap='gray')
-    ax.set_title('huts detected: {}'.format(islands))
-
-    output = io.BytesIO()
-    plt.savefig(output, dpi=fig.dpi)
-    output.seek(0)
-
-    return send_file(output, mimetype='image/png')
-
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('index_2.html')
 
 
+# need to take raster as input
+# metadata from raster
 @app.route('/predict', methods=['POST'])
 def predict():
-    if request.files['file'].filename == '':
-        return 'No selected file'
 
-    # Load image
-    image = request.files['file']
-    image = Image.open(image).convert('RGB')
+    # inputs
+    request.files['file']
+    file = request.files['file']
+    file.save(os.path.join('tmp', 'input_raster'))
 
-    img = np.array(image).astype('float32')
+    import gdal
+    from PIL import Image
+    src = gdal.Open(os.path.join('tmp', 'input_raster'))
 
-    img_rows, img_cols = img.shape[0], img.shape[1]
+    img = np.array(src.ReadAsArray()).astype('uint8').swapaxes(0,2).swapaxes(0,1)
+    print(img.shape)
+    rs_height, rs_width = img.shape[0], img.shape[1]
+    image = Image.fromarray(img, mode='RGB')
 
+    # crop, score and compose
     # crop image, score and create output
     height, width = 256, 256
 
     im_list = []  # the crops will go here
     huts_list = []  # the huts for each image go here
-    composite = np.zeros((img_rows, img_cols)) # the result from each crop will be stored here.
+    composite = np.zeros((rs_height, rs_width))  # the result from each crop will be stored here.
+    print(rs_height, rs_width)
+    for i in range(rs_height // height):
+        for j in range(rs_width // width):
 
-    for i in range(img_rows // height):
-        for j in range(img_cols // width):
-            # print (i,j)
-            box = (j * width, i * height, (j + 1) * width, (i + 1) * height)
-            im_crop = image.crop(box)
-            im_list.append(im_crop)
+            box = (j * width, i * height, (j + 1) * width, (i + 1) * height)  # find box coordinates
+            im_crop = image.crop(box)  # crop images
+            im_list.append(im_crop)  # append to the list of images to be scored
 
-            im_crop = np.array(im_crop).astype('float32')
-            res = model.predict((im_crop/np.amax(img)).reshape(1, im_crop.shape[0], im_crop.shape[1], 3))
+            im_crop = np.array(im_crop).astype('float32')  # convert from PIL to array
+            res = model.predict((im_crop / np.amax(im_crop)).reshape(1, im_crop.shape[0], im_crop.shape[1], 3))
 
-            g = Graph(height, width, res.reshape(im_crop.shape[0], im_crop.shape[1]))
-            #huts_list.append(g.countIslands())
-            print(res.shape[1], res.shape[2])
-            tg_shape = composite[j * width:(j + 1) * width, i * height:(i + 1) * height].shape
-            print(tg_shape)
-            composite[j * width:(j + 1) * width, i * height:(i + 1) * height] = res[:,:tg_shape[0], :tg_shape[1],:].reshape(tg_shape[0], tg_shape[1])
+            # g = Graph(height, width, res.reshape(im_crop.shape[0], im_crop.shape[1]))
+            # huts_list.append(g.countIslands())
 
-    # generate image with result
-    return output_showcase(img, composite, img_rows, img_cols, sum(huts_list))
+            # add to tiled
+            tg_shape = composite[i * height:(i + 1) * height, j * width:(j + 1) * width].shape
+            composite[i * height:(i + 1) * height, j * width:(j + 1) * width] = \
+                res[:, :tg_shape[0], :tg_shape[1], :].reshape(tg_shape[0], tg_shape[1])
+
+    print('composite size: ', composite.shape)
+    print('huts list: ', huts_list)
+
+    from utils import tifgenerator
+    outfile = 'tmp/output.tif'
+    #composite = composite*255
+    print(composite[composite>0.5])
+    tifgenerator(outfile=outfile, raster=src, array=composite)
+
+    print('sending file to client.')
+    return send_file(outfile,
+                     mimetype='image/tiff',
+                     as_attachment=True,
+                     attachment_filename="predictions.tif")
 
 
 if __name__ == '__main__':
