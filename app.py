@@ -60,9 +60,6 @@ def predict():
     from utils import tifgenerator
     outfile = 'tmp/output.tif'
 
-    composite[composite>0.5] = 1
-    composite[composite <= 0.5] = 0
-
     tifgenerator(outfile=outfile, raster=src, array=composite)
 
     print('sending file to client.')
