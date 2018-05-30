@@ -3,9 +3,11 @@ from flask import send_file, render_template
 import os
 import numpy as np
 from tensorflow.python.keras.models import load_model
-from number_of_islands import Graph
+from scipy import ndimage
+from utils import tifgenerator, output_showcase
 
 app = Flask(__name__, instance_relative_config=True)
+
 
 @app.route('/')
 def home():
@@ -36,7 +38,7 @@ def predict():
     height, width = 256, 256
 
     im_list = []  # the crops will go here
-    # huts_list = []  # the huts for each image go here
+    huts_list = []  # the huts for each image go here
     composite = np.zeros((rs_height, rs_width))  # the result from each crop will be stored here.
     print(rs_height, rs_width)
     for i in range(rs_height // height):
@@ -49,24 +51,29 @@ def predict():
             im_crop = np.array(im_crop).astype('float32')  # convert from PIL to array
             res = model.predict((im_crop / np.amax(im_crop)).reshape(1, im_crop.shape[0], im_crop.shape[1], 3))
 
-            #g = Graph(height, width, res.reshape(im_crop.shape[0], im_crop.shape[1]))
-            #huts_list.append(g.countIslands())
+            blobs, number_of_blobs = ndimage.label(res.reshape(im_crop.shape[0], im_crop.shape[1]))
+            huts_list.append(number_of_blobs - 1)
 
             # add to tiled
             tg_shape = composite[i * height:(i + 1) * height, j * width:(j + 1) * width].shape
             composite[i * height:(i + 1) * height, j * width:(j + 1) * width] = \
                 res[:, :tg_shape[0], :tg_shape[1], :].reshape(tg_shape[0], tg_shape[1])
 
-    from utils import tifgenerator
-    outfile = 'tmp/output.tif'
+    print('Number of blobls:', np.sum(huts_list))
 
+    # prepare raster
+    outfile = 'tmp/output.tif'
     tifgenerator(outfile=outfile, raster=src, array=composite)
 
-    print('sending file to client.')
-    return send_file(outfile,
-                     mimetype='image/tiff',
-                     as_attachment=True,
-                     attachment_filename="predictions.tif")
+    if request.form["action"] == "download":
+        print('sending file to client.')
+        return send_file(outfile,
+                         mimetype='image/tiff',
+                         as_attachment=True,
+                         attachment_filename="predictions.tif")
+
+    elif request.form["action"] == "preview":
+        return output_showcase(img, composite, img.shape[0], img.shape[1], sum(huts_list))
 
 
 if __name__ == '__main__':
