@@ -22,6 +22,9 @@ def predict():
     # inputs
     request.files['file']
     file = request.files['file']
+
+    if not os.path.exists('tmp'):
+        os.makedirs('tmp')
     file.save(os.path.join('tmp', 'input_raster'))
 
     import gdal
