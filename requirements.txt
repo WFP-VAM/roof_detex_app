@@ -1,5 +1,4 @@
 Flask==0.12.2
-GDAL==2.2.4
 h5py==2.7.1
 matplotlib==2.2.2
 numpy==1.13.3
