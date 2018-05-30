@@ -3,6 +3,6 @@ pillow==4.3.0
 tensorflow==1.4.0 
 matplotlib==1.2.0
 scipy==0.19.1
-osgeo==2.2.4
+gdal
 gunicorn
 h5py
