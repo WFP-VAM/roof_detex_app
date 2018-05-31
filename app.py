@@ -19,6 +19,7 @@ def home():
 @app.route('/predict', methods=['POST'])
 def predict():
 
+    print('loading file...')
     # inputs
     request.files['file']
     file = request.files['file']
@@ -32,7 +33,6 @@ def predict():
     src = gdal.Open(os.path.join('tmp', 'input_raster'))
 
     img = np.array(src.ReadAsArray()).astype('uint8').swapaxes(0,2).swapaxes(0,1)
-    print(img.shape)
     rs_height, rs_width = img.shape[0], img.shape[1]
     image = Image.fromarray(img, mode='RGB')
 
@@ -46,7 +46,7 @@ def predict():
     print(rs_height, rs_width)
     for i in range(rs_height // height):
         for j in range(rs_width // width):
-
+            print('scoring crop...')
             box = (j * width, i * height, (j + 1) * width, (i + 1) * height)  # find box coordinates
             im_crop = image.crop(box)  # crop images
             im_list.append(im_crop)  # append to the list of images to be scored
@@ -54,8 +54,9 @@ def predict():
             im_crop = np.array(im_crop).astype('float32')  # convert from PIL to array
             res = model.predict((im_crop / np.amax(im_crop)).reshape(1, im_crop.shape[0], im_crop.shape[1], 3))
 
-            blobs, number_of_blobs = ndimage.label(res.reshape(im_crop.shape[0], im_crop.shape[1]))
-            huts_list.append(number_of_blobs - 1)
+            blobs, number_of_blobs = ndimage.measurements.label(
+                ndimage.binary_fill_holes(res.reshape(im_crop.shape[0], im_crop.shape[1]).astype(int)))
+            huts_list.append(number_of_blobs)
 
             # add to tiled
             tg_shape = composite[i * height:(i + 1) * height, j * width:(j + 1) * width].shape
@@ -76,6 +77,7 @@ def predict():
                          attachment_filename="predictions.tif")
 
     elif request.form["action"] == "preview":
+        print('loading preview...')
         return output_showcase(img, composite, img.shape[0], img.shape[1], sum(huts_list))
 
 
