@@ -11,7 +11,7 @@ app = Flask(__name__, instance_relative_config=True)
 
 @app.route('/')
 def home():
-    return render_template('index_2.html')
+    return render_template('index.html')
 
 
 # need to take raster as input
@@ -19,9 +19,16 @@ def home():
 @app.route('/predict', methods=['POST'])
 def predict():
 
+    print('loading model...')
+    model_type = request.form['model_type']
+    if model_type == 'huts': 
+        model = model_huts
+    elif model_type == 'buildings':
+        model = model_buildings
+
+
     print('loading file...')
     # inputs
-    request.files['file']
     file = request.files['file']
 
     if not os.path.exists('tmp'):
@@ -38,7 +45,7 @@ def predict():
 
     # crop, score and compose
     # crop image, score and create output
-    height, width = 256, 256
+    height, width = 512, 512
 
     im_list = []  # the crops will go here
     huts_list = []  # the huts for each image go here
@@ -87,7 +94,8 @@ if __name__ == '__main__':
     print(("* Loading Keras model and Flask starting server..."
             "please wait until server has fully started"))
 
-    model = load_model('model.h5', compile=False)
+    model_huts = load_model('model_huts.h5', compile=False)
+    model_buildings = load_model('model_buildings_and_VAM.h5', compile=False)
 
     # Bind to PORT if defined, otherwise default to 5000.
     port = int(os.environ.get('PORT', 5000))
