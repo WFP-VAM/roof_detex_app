@@ -23,9 +23,9 @@ def predict():
 
     print('loading model...')
     model_type = request.form['model_type']
-    if model_type == 'VAM only':
+    if model_type == 'vam':
         model = model_vam
-    elif model_type == 'VAM and Spacenet':
+    elif model_type == 'spacenet_vam':
         model = model_spacenet_vam
 
 
