@@ -5,6 +5,8 @@ import numpy as np
 from tensorflow.python.keras.models import load_model
 from scipy import ndimage
 from utils import tifgenerator, output_showcase
+import gdal
+from PIL import Image
 
 app = Flask(__name__, instance_relative_config=True)
 
@@ -21,10 +23,10 @@ def predict():
 
     print('loading model...')
     model_type = request.form['model_type']
-    if model_type == 'huts': 
-        model = model_huts
-    elif model_type == 'buildings':
-        model = model_buildings
+    if model_type == 'VAM only':
+        model = model_vam
+    elif model_type == 'VAM and Spacenet':
+        model = model_spacenet_vam
 
 
     print('loading file...')
@@ -35,17 +37,15 @@ def predict():
         os.makedirs('tmp')
     file.save(os.path.join('tmp', 'input_raster'))
 
-    import gdal
-    from PIL import Image
-    src = gdal.Open(os.path.join('tmp', 'input_raster'))
+    src = gdal.Open(os.path.join('tmp', 'input_raster'))  #src = gdal.Open('../roof_detex/VAM_data/rasters/bawargana_26apr2017_comp_crop.tif')
 
-    img = np.array(src.ReadAsArray()).astype('uint8').swapaxes(0,2).swapaxes(0,1)
+    img = src.ReadAsArray().astype('uint8').swapaxes(0,2).swapaxes(0,1)
     rs_height, rs_width = img.shape[0], img.shape[1]
-    image = Image.fromarray(img, mode='RGB')
+    image = Image.fromarray(img)#, mode='RGB')
 
     # crop, score and compose
     # crop image, score and create output
-    height, width = 512, 512
+    height, width = 256, 256
 
     im_list = []  # the crops will go here
     huts_list = []  # the huts for each image go here
@@ -59,7 +59,7 @@ def predict():
             im_list.append(im_crop)  # append to the list of images to be scored
 
             im_crop = np.array(im_crop).astype('float32')  # convert from PIL to array
-            res = model.predict((im_crop / np.amax(im_crop)).reshape(1, im_crop.shape[0], im_crop.shape[1], 3))
+            res = model.predict((im_crop / 255.).reshape(1, im_crop.shape[0], im_crop.shape[1], 3))
 
             blobs, number_of_blobs = ndimage.measurements.label(
                 ndimage.binary_fill_holes(res.reshape(im_crop.shape[0], im_crop.shape[1]).astype(int)))
@@ -94,8 +94,8 @@ if __name__ == '__main__':
     print(("* Loading Keras model and Flask starting server..."
             "please wait until server has fully started"))
 
-    model_huts = load_model('model_huts.h5', compile=False)
-    model_buildings = load_model('model_buildings_and_VAM.h5', compile=False)
+    model_vam = load_model('model/model_vam.h5', compile=False)
+    model_spacenet_vam = load_model('model/model_spacenet_VAM.h5', compile=False)
 
     # Bind to PORT if defined, otherwise default to 5000.
     port = int(os.environ.get('PORT', 5000))
