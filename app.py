@@ -7,6 +7,7 @@ from scipy import ndimage
 from utils import tifgenerator, output_showcase
 import gdal
 from PIL import Image
+import tensorflow as tf
 
 app = Flask(__name__, instance_relative_config=True)
 
@@ -59,7 +60,8 @@ def predict():
             im_list.append(im_crop)  # append to the list of images to be scored
 
             im_crop = np.array(im_crop).astype('float32')  # convert from PIL to array
-            res = model.predict((im_crop / 255.).reshape(1, im_crop.shape[0], im_crop.shape[1], 3))
+            with graph.as_default():
+                res = model.predict((im_crop / 255.).reshape(1, im_crop.shape[0], im_crop.shape[1], 3))
 
             blobs, number_of_blobs = ndimage.measurements.label(
                 ndimage.binary_fill_holes(res.reshape(im_crop.shape[0], im_crop.shape[1]).astype(int)))
@@ -94,9 +96,11 @@ if __name__ == '__main__':
     print(("* Loading Keras model and Flask starting server..."
             "please wait until server has fully started"))
 
-    model_vam = load_model('model/model_vam.h5', compile=False)
-    model_spacenet_vam = load_model('model/model_spacenet_VAM.h5', compile=False)
+    model_vam = load_model('model/model_VAM.h5', compile=False)
+    model_spacenet_vam = load_model('model/model_spacenet_vam.h5', compile=False)
+    global graph
+    graph = tf.get_default_graph()
 
     # Bind to PORT if defined, otherwise default to 5000.
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, debug=False)
