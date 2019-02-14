@@ -1,0 +1,10 @@
+name: envv
+dependencies:
+  - pillow
+  - flask
+  - gdal=2.3.3
+  - python=3.6.8
+  - scipy=0.19
+  - h5py
+  - tensorflow=1.12
+  - matplotlib
